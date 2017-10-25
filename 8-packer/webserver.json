@@ -1,0 +1,45 @@
+{
+  "description": "AMI Builder for Openwebinars Example",
+  "min_packer_version": "1.1.0",
+  "variables": {
+    "aws_profile": ""
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "profile": "{{ user `aws_profile` }}",
+      "region": "eu-west-1",
+      "source_ami": "ami-785db401",
+      "instance_type": "t2.micro",
+      "ssh_username": "ubuntu",
+      "ami_name": "Openwebinars - Packer Example {{timestamp}}",
+      "tags": {
+        "OS_Version": "Ubuntu 16.04",
+        "Version": "{{timestamp}}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "destination": "/tmp/",
+      "source": "./config/default.conf",
+      "type": "file"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo apt-get update",
+        "sudo apt-get install --assume-yes nginx php-fpm",
+        "sudo cp /tmp/default.conf /etc/nginx/sites-available/default",
+        "sudo mkdir -p /var/www/html",
+        "sudo chown -R www-data /var/www/html",
+        "sudo echo '<?php phpinfo(); ?>' > /tmp/info.php",
+        "sudo cp /tmp/info.php /var/www/html/info.php",
+        "sudo chown www-data.www-data /var/www/html/info.php",
+        "sudo service nginx start",
+        "sudo service php7.0-fpm start"
+      ]
+    }
+  ]
+}
